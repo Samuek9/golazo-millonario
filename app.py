@@ -53,22 +53,15 @@ SETTINGS_DEFAULTS = {
         "2 pares de guayos Nike, 2 pares de guayos Adidas y 5 balones profesionales Golty.\n\n"
         "El sorteo se hace por color entre el 25 y el 29 de agosto de 2026. Cada color tiene "
         "su propia lotería pública real — revisa abajo qué lotería y qué día le corresponde a "
-        "tu color. Si tu código coincide en las 2 últimas cifras del resultado de esa lotería "
-        "en esa fecha, ¡ganas! Puedes verificar el resultado en cualquier punto autorizado o en "
-        "la página oficial de cada lotería."
+        "tu color. Cada código juega las 2 últimas cifras del resultado de esa lotería Y su "
+        "inverso (por ejemplo, si el resultado termina en 47, también gana el 74). Puedes "
+        "verificar el resultado en cualquier punto autorizado o en la página oficial de cada "
+        "lotería."
     ),
     "nequi_info": (
-        "La app Nequi Negocios (desarrollada junto con Wompi) te deja recibir pagos con tarjeta, "
-        "QR y links de pago directo a tu cuenta Nequi. Así te afilias:\n\n"
-        "1. Abre tu app Nequi y entra a la sección \"Mi Negocio\".\n"
-        "2. Completa el formulario de registro de negocio dentro de Nequi.\n"
-        "3. Descarga la app Nequi Negocios desde Google Play o App Store.\n"
-        "4. Inicia sesión con tus credenciales de Nequi y crea tu perfil de comercio.\n"
-        "5. Elige qué métodos de pago quieres aceptar (tarjeta, links, QR).\n"
-        "6. ¡Listo! Ya puedes recibir pagos directo a tu cuenta Nequi.\n\n"
-        "Necesitas: cuenta Nequi activa, documento de identidad y datos de tu negocio. Usa "
-        "nuestro código de referido GOLAZO2026 al registrarte, para que quede asociado al club."
+        "Ahí están los pasos completos para afiliarte: Nequi Negocios — tu celular como datáfono."
     ),
+    "nequi_link": "https://share.google/Qr96gP6kEP7iCTl9d",
     "legal_permit_number": "",
     "show_legal_badge": "false",
 }
@@ -1040,6 +1033,7 @@ def admin_settings():
     if request.method == "POST":
         set_setting("prize_description", request.form.get("prize_description", "").strip())
         set_setting("nequi_info", request.form.get("nequi_info", "").strip())
+        set_setting("nequi_link", request.form.get("nequi_link", "").strip())
         set_setting("legal_permit_number", request.form.get("legal_permit_number", "").strip())
         set_setting("show_legal_badge", "true" if request.form.get("show_legal_badge") else "false")
         saved = True

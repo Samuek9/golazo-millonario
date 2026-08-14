@@ -147,6 +147,12 @@
   <div class="info-card" style="max-width:900px;margin:0 auto;border-left:4px solid #E91E63">
     <h3>💜 Extra: afíliate a Nequi Negocios</h3>
     <p style="white-space:pre-line;color:#e0e0e0;line-height:1.6">{{ settings.nequi_info }}</p>
+    {% if settings.nequi_link %}
+    <a href="{{ settings.nequi_link }}" target="_blank" rel="noopener"
+       style="display:inline-block;margin-top:10px;color:#E91E63;font-weight:bold;text-decoration:none">
+      {{ settings.nequi_link }} →
+    </a>
+    {% endif %}
   </div>
 </section>
 {% endblock %}
