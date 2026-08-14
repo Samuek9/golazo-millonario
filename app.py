@@ -1,5 +1,5 @@
 """
-Golazo Millonario 2026 — Códigos de Afiliación a Nequi Negocios
+Golazo Millonario 2026 — Rifa deportiva (Play Stadion Medellín)
 Flask + PostgreSQL (Neon) + Wompi
 """
 import hashlib
@@ -49,31 +49,42 @@ RIFA_NAME = os.getenv("RIFA_NAME", "Golazo Millonario 2026")
 # ─── Ajustes editables desde /admin/settings (premio, Nequi, badge legal) ────
 SETTINGS_DEFAULTS = {
     "prize_description": (
-        "Edita este texto desde el panel admin (/admin/settings) para describir el premio "
-        "y el mecanismo del sorteo: qué se gana, por cuánto valor, y a qué lotería pública "
-        "real se ata el número ganador (ej. últimas 2 cifras de la Lotería de Bogotá del "
-        "[fecha])."
+        "Golazo Millonario 2026 sortea un kit deportivo de Play Stadion Medellín: "
+        "2 pares de guayos Nike, 2 pares de guayos Adidas y 5 balones profesionales Golty.\n\n"
+        "El sorteo se hace por color entre el 25 y el 29 de agosto de 2026. Cada color tiene "
+        "su propia lotería pública real — revisa abajo qué lotería y qué día le corresponde a "
+        "tu color. Si tu código coincide en las 2 últimas cifras del resultado de esa lotería "
+        "en esa fecha, ¡ganas! Puedes verificar el resultado en cualquier punto autorizado o en "
+        "la página oficial de cada lotería."
     ),
     "nequi_info": (
-        "Edita este texto desde el panel admin (/admin/settings) con el tutorial paso a paso "
-        "para afiliarse a Nequi Negocios y el código/link de referido del club."
+        "La app Nequi Negocios (desarrollada junto con Wompi) te deja recibir pagos con tarjeta, "
+        "QR y links de pago directo a tu cuenta Nequi. Así te afilias:\n\n"
+        "1. Abre tu app Nequi y entra a la sección \"Mi Negocio\".\n"
+        "2. Completa el formulario de registro de negocio dentro de Nequi.\n"
+        "3. Descarga la app Nequi Negocios desde Google Play o App Store.\n"
+        "4. Inicia sesión con tus credenciales de Nequi y crea tu perfil de comercio.\n"
+        "5. Elige qué métodos de pago quieres aceptar (tarjeta, links, QR).\n"
+        "6. ¡Listo! Ya puedes recibir pagos directo a tu cuenta Nequi.\n\n"
+        "Necesitas: cuenta Nequi activa, documento de identidad y datos de tu negocio. Usa "
+        "nuestro código de referido GOLAZO2026 al registrarte, para que quede asociado al club."
     ),
     "legal_permit_number": "",
     "show_legal_badge": "false",
 }
 
-# ─── 10 Colores (1 sorteo por color) ─────────────────────────────────────────
+# ─── 10 Colores (1 sorteo por color, atado a una lotería pública real) ───────
 COLORS = [
-    {"id": "blanco",   "name": "Blanco",       "hex": "#FFFFFF", "text": "#000000"},
-    {"id": "verde",    "name": "Verde Lima",    "hex": "#AEEA00", "text": "#000000"},
-    {"id": "amarillo", "name": "Amarillo",      "hex": "#FFD600", "text": "#000000"},
-    {"id": "marino",   "name": "Azul Marino",   "hex": "#1A237E", "text": "#FFFFFF"},
-    {"id": "rojo",     "name": "Rojo",          "hex": "#DD2C00", "text": "#FFFFFF"},
-    {"id": "teal",     "name": "Verde Azulado", "hex": "#004D40", "text": "#FFFFFF"},
-    {"id": "rosa",     "name": "Rosa",          "hex": "#E91E63", "text": "#FFFFFF"},
-    {"id": "naranja",  "name": "Naranja",       "hex": "#E65100", "text": "#FFFFFF"},
-    {"id": "celeste",  "name": "Azul Claro",    "hex": "#81D4FA", "text": "#000000"},
-    {"id": "negro",    "name": "Negro",         "hex": "#212121", "text": "#FFFFFF"},
+    {"id": "blanco",   "name": "Blanco",       "hex": "#FFFFFF", "text": "#000000", "lottery": "Lotería de la Cruz Roja", "draw_date": "25 de agosto de 2026"},
+    {"id": "verde",    "name": "Verde Lima",    "hex": "#AEEA00", "text": "#000000", "lottery": "Lotería del Huila",       "draw_date": "25 de agosto de 2026"},
+    {"id": "amarillo", "name": "Amarillo",      "hex": "#FFD600", "text": "#000000", "lottery": "Lotería de Manizales",    "draw_date": "26 de agosto de 2026"},
+    {"id": "marino",   "name": "Azul Marino",   "hex": "#1A237E", "text": "#FFFFFF", "lottery": "Lotería del Meta",        "draw_date": "26 de agosto de 2026"},
+    {"id": "rojo",     "name": "Rojo",          "hex": "#DD2C00", "text": "#FFFFFF", "lottery": "Lotería de Bogotá",       "draw_date": "27 de agosto de 2026"},
+    {"id": "teal",     "name": "Verde Azulado", "hex": "#004D40", "text": "#FFFFFF", "lottery": "Lotería del Quindío",     "draw_date": "27 de agosto de 2026"},
+    {"id": "rosa",     "name": "Rosa",          "hex": "#E91E63", "text": "#FFFFFF", "lottery": "Lotería del Tolima",      "draw_date": "27 de agosto de 2026"},
+    {"id": "naranja",  "name": "Naranja",       "hex": "#E65100", "text": "#FFFFFF", "lottery": "Lotería de Medellín",     "draw_date": "28 de agosto de 2026"},
+    {"id": "celeste",  "name": "Azul Claro",    "hex": "#81D4FA", "text": "#000000", "lottery": "Lotería de Boyacá",       "draw_date": "29 de agosto de 2026"},
+    {"id": "negro",    "name": "Negro",         "hex": "#212121", "text": "#FFFFFF", "lottery": "Lotería del Cauca",       "draw_date": "29 de agosto de 2026"},
 ]
 COLOR_MAP = {c["id"]: c for c in COLORS}
 
@@ -904,7 +915,7 @@ def pase_image(token):
 
 @app.route("/terminos")
 def terminos():
-    return render_template("terminos.html", rifa_name=RIFA_NAME, settings=get_settings())
+    return render_template("terminos.html", rifa_name=RIFA_NAME, settings=get_settings(), colors=COLORS)
 
 
 @app.route("/privacidad")
