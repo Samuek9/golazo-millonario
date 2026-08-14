@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}{{ rifa_name }}{% endblock %} | Golazo Millonario</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  {% block head %}{% endblock %}
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <div class="logo">
+        <a href="/" style="text-decoration:none">
+          <span class="logo-x">GOLAZO</span><span class="logo-tv"> MILLONARIO</span>
+        </a>
+      </div>
+      <nav>
+        <a href="/">Inicio</a>
+        <a href="/buscar">Mis códigos</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer>
+    <p>&copy; 2026 Golazo Millonario. Todos los derechos reservados.</p>
+    <p style="font-size:0.75rem;color:#555">
+      Al comprar aceptas nuestros
+      <a href="/terminos" style="color:#e63946">Términos y Condiciones</a>
+      y la
+      <a href="/privacidad" style="color:#e63946">Política de Privacidad</a>.
+    </p>
+  </footer>
+</body>
+</html>

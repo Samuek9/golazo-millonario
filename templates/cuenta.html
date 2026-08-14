@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}Mi Cuenta{% endblock %}
+
+{% block content %}
+<section class="cuenta-section">
+  <div class="cuenta-header">
+    <h2>Mi Cuenta</h2>
+    <p>Hola, <strong>{{ buyer.full_name }}</strong> · <span style="color:#90CAF9">{{ buyer.email }}</span></p>
+  </div>
+
+  {% if not orders %}
+  <div class="empty-state">
+    <p>Aún no tienes órdenes registradas.</p>
+    <a href="/" class="btn-primary">Comprar códigos</a>
+  </div>
+  {% endif %}
+
+  {% for item in orders %}
+  <div class="order-card">
+    <div class="order-card-header">
+      <div>
+        <span class="order-ref">GOLAZO-{{ item.order.id }}</span>
+        <span class="order-date">{{ item.order.created_at | string | truncate(16, True, '') }}</span>
+      </div>
+      <span class="status-badge status-{{ item.order.status | lower }}">
+        {% if item.order.status == 'PAID' %}✅ Pagado
+        {% elif item.order.status == 'PENDING' %}⏳ Pendiente
+        {% elif item.order.status == 'FAILED' %}❌ Fallido
+        {% elif item.order.status == 'EXPIRED' %}⌛ Expirado
+        {% else %}{{ item.order.status }}{% endif %}
+      </span>
+    </div>
+
+    <div class="order-card-body">
+      <div class="order-meta">
+        <span>{{ item.order.quantity }} códigos · {{ item.order.packs }} paquete{% if item.order.packs > 1 %}s{% endif %}</span>
+        <span>${{ "{:,.0f}".format(item.order.total_amount) }} COP</span>
+      </div>
+
+      {% if item.codes_by_color %}
+      <div class="codes-by-color-list">
+        {% for group in item.codes_by_color %}
+        <div class="color-row compact">
+          <div class="color-dot" style="background:{{ group.hex }}"></div>
+          <span class="color-label">{{ group.name }}</span>
+          <div class="code-chips">
+            {% for n in group.numbers %}
+            <span class="code-chip {% if item.order.status == 'PAID' %}sold{% endif %}"
+                  style="border-color:{{ group.hex }}">{{ "%02d"|format(n) }}</span>
+            {% endfor %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      {% if item.order.status == 'PAID' %}
+      <div class="pass-actions">
+        <a href="/pase/{{ buyer.access_token }}.png" download="pase_golazo_millonario.png" class="btn-secondary">
+          ⬇️ Descargar Pase Digital
+        </a>
+      </div>
+      {% elif item.order.status == 'PENDING' and item.order.wompi_payment_link_url %}
+      <div class="pass-actions">
+        <a href="{{ item.order.wompi_payment_link_url }}" class="btn-primary" target="_blank">
+          💳 Completar pago
+        </a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+
+  {% set has_paid = namespace(value=false) %}
+  {% for item in orders %}{% if item.order.status == 'PAID' %}{% set has_paid.value = true %}{% endif %}{% endfor %}
+
+  {% if has_paid.value %}
+  <div class="pass-section">
+    <h3>Tu Pase Digital</h3>
+    <p style="color:#90CAF9">Comprobante de tus códigos de afiliación a Golazo Millonario.</p>
+    <img src="/pase/{{ buyer.access_token }}.png" alt="Pase Digital"
+         style="max-width:100%;border-radius:12px;border:2px solid #1565C0;margin-top:12px">
+    <br>
+    <a href="/pase/{{ buyer.access_token }}.png" download="pase_golazo_millonario.png"
+       class="btn-primary" style="display:inline-block;margin-top:12px">
+      ⬇️ Descargar Pase
+    </a>
+  </div>
+  {% endif %}
+</section>
+{% endblock %}

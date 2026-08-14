@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}Confirmar Pago{% endblock %}
+
+{% block content %}
+<section class="checkout-section">
+  <div class="checkout-card">
+
+    <div class="checkout-header">
+      <div class="checkout-icon">🎟️</div>
+      <h2>Confirma tu compra</h2>
+      <p>Tus códigos están <strong>reservados {{ expires_minutes }} minutos</strong>. Paga antes de que expire.</p>
+      <div class="timer-bar"><div id="timer-fill" class="timer-fill"></div></div>
+      <div id="timer-text" class="timer-text">{{ expires_minutes }}:00</div>
+    </div>
+
+    <div class="order-summary">
+      <div class="summary-row"><span>Comprador</span><strong>{{ buyer_name }}</strong></div>
+      <div class="summary-row"><span>Email</span><strong>{{ buyer_email }}</strong></div>
+      <div class="summary-row"><span>Paquetes</span><strong>{{ packs }} paquete{% if packs > 1 %}s{% endif %}</strong></div>
+      <div class="summary-row"><span>Códigos de afiliación</span><strong>{{ total_codes }} ({{ packs }}×10)</strong></div>
+      <div class="summary-row"><span>Precio por código</span><strong>${{ "{:,.0f}".format(unit_price) }} COP</strong></div>
+      <div class="summary-row total">
+        <span>TOTAL</span>
+        <strong>${{ "{:,.0f}".format(total_amount) }} COP</strong>
+      </div>
+    </div>
+
+    <!-- Codes by color -->
+    <div class="codes-section">
+      <h3>Tus códigos</h3>
+      {% for group in codes_by_color %}
+      <div class="color-row">
+        <div class="color-dot" style="background:{{ group.hex }}"></div>
+        <span class="color-label">{{ group.name }}</span>
+        <div class="code-chips">
+          {% for n in group.numbers %}
+          <span class="code-chip" style="border-color:{{ group.hex }}">{{ "%02d"|format(n) }}</span>
+          {% endfor %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Payment button -->
+    <div class="payment-actions">
+      {% if payment_url %}
+        <a href="{{ payment_url }}" class="btn-primary btn-large btn-pay" target="_blank">
+          💳 Pagar con Wompi
+        </a>
+        <p class="payment-note">
+          Tarjeta débito/crédito · PSE · Nequi · Daviplata · Efecty
+        </p>
+      {% else %}
+        <div class="alert alert-error" style="margin-bottom:16px">
+          <strong>No se pudo generar el enlace de pago.</strong><br><br>
+          {% if wompi_error %}
+            <span style="font-family:monospace;font-size:0.82rem;word-break:break-all">{{ wompi_error }}</span><br><br>
+          {% else %}
+            <span style="font-size:0.88rem">Las llaves de pago no están configuradas en el servidor.</span><br><br>
+          {% endif %}
+          Guarda tu referencia <strong>{{ reference }}</strong> y contáctanos para completar la compra.
+        </div>
+        <a href="/" class="btn-secondary">← Volver e intentar de nuevo</a>
+      {% endif %}
+    </div>
+
+    <div class="checkout-footer">
+      <p>Referencia: <code>{{ reference }}</code></p>
+      <p>Al confirmar el pago recibirás un correo a <strong>{{ buyer_email }}</strong> con tu Pase Digital.</p>
+    </div>
+
+  </div>
+</section>
+{% endblock %}
+
+{% block head %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const totalMs = {{ expires_minutes }} * 60000;
+  const start   = Date.now();
+  const fill    = document.getElementById('timer-fill');
+  const text    = document.getElementById('timer-text');
+  function tick() {
+    const rem = Math.max(0, totalMs - (Date.now() - start));
+    const pct = (rem / totalMs) * 100;
+    fill.style.width = pct + '%';
+    fill.style.background = pct < 30 ? '#E91E63' : pct < 60 ? '#FFD600' : '#42A5F5';
+    const m = Math.floor(rem / 60000), s = Math.floor((rem % 60000) / 1000);
+    text.textContent = rem > 0 ? `${m}:${s.toString().padStart(2,'0')}` : '¡Reserva expirada!';
+    if (rem > 0) setTimeout(tick, 1000);
+  }
+  tick();
+});
+</script>
+{% endblock %}

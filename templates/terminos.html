@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Términos y Condiciones{% endblock %}
+
+{% block content %}
+<section class="buscar-section" style="max-width:800px;margin:40px auto;padding:0 16px;color:#e0e0e0;line-height:1.7">
+  <h2 style="color:#fff;margin-bottom:16px">Términos y Condiciones — {{ rifa_name }}</h2>
+
+  {% if settings.show_legal_badge == 'true' %}
+  <div style="background:rgba(76,175,80,.12);border:1px solid rgba(76,175,80,.4);border-radius:8px;padding:14px 18px;margin-bottom:24px">
+    <strong style="color:#81C784">Rifa autorizada.</strong>
+    {% if settings.legal_permit_number %}
+    Operada bajo el permiso No. <strong>{{ settings.legal_permit_number }}</strong> ante la autoridad de juegos de suerte y azar competente.
+    {% endif %}
+  </div>
+  {% else %}
+  <div style="background:rgba(255,214,0,.10);border:1px solid rgba(255,214,0,.35);border-radius:8px;padding:14px 18px;margin-bottom:24px">
+    <strong style="color:#FFD54F">Aviso:</strong> el permiso de esta rifa aún no ha sido publicado en este sitio.
+  </div>
+  {% endif %}
+
+  <h3 style="color:#fff;margin-top:24px">1. Objeto</h3>
+  <p>{{ rifa_name }} es una rifa organizada para recaudar fondos para el club, con un premio descrito en la
+     página principal. La compra de un código otorga un número dentro de una paleta de colores, participante
+     en el sorteo descrito en la sección "El premio".</p>
+
+  <h3 style="color:#fff;margin-top:24px">2. Precio y paquetes</h3>
+  <p>Cada código tiene un valor fijo publicado en la página principal. El paquete mínimo de compra es de 10 códigos
+     (uno por cada color). Los precios están expresados en pesos colombianos (COP) e incluyen los impuestos aplicables.</p>
+
+  <h3 style="color:#fff;margin-top:24px">3. Asignación de números</h3>
+  <p>Los números se asignan de forma aleatoria dentro de cada color en el momento de la reserva, y quedan reservados
+     por un tiempo limitado mientras se completa el pago. Si el pago no se completa a tiempo, los números vuelven
+     a estar disponibles para otros compradores.</p>
+
+  <h3 style="color:#fff;margin-top:24px">4. Mecanismo del sorteo</h3>
+  <p style="white-space:pre-line">{{ settings.prize_description }}</p>
+
+  <h3 style="color:#fff;margin-top:24px">5. Afiliación a Nequi Negocios</h3>
+  <p>Este sitio promueve la afiliación al programa Nequi Negocios de forma independiente. {{ rifa_name }} no es
+     un producto de Nequi ni está administrado por Nequi — es una iniciativa propia del club que incluye un
+     incentivo de referido. Consulta los términos propios de Nequi Negocios directamente en su plataforma oficial
+     antes de afiliarte.</p>
+
+  <h3 style="color:#fff;margin-top:24px">6. Pagos</h3>
+  <p>Los pagos se procesan a través de Wompi (tarjeta débito/crédito, PSE, Nequi, Daviplata). {{ rifa_name }} no
+     almacena datos de tarjetas — esa información es manejada directamente por la pasarela de pago.</p>
+
+  <h3 style="color:#fff;margin-top:24px">7. Datos personales</h3>
+  <p>Consulta el tratamiento de tus datos en nuestra <a href="/privacidad" style="color:#E91E63">Política de Privacidad</a>.</p>
+
+  <h3 style="color:#fff;margin-top:24px">8. Contacto</h3>
+  <p>Para dudas sobre tu compra, usa la sección <a href="/buscar" style="color:#E91E63">Mis códigos</a> o contacta
+     directamente al club organizador.</p>
+</section>
+{% endblock %}
