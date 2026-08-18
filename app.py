@@ -50,13 +50,14 @@ RIFA_NAME = os.getenv("RIFA_NAME", "Golazo Millonario 2026")
 SETTINGS_DEFAULTS = {
     "prize_description": (
         "Golazo Millonario 2026 sortea un kit deportivo de Playstation Medellín: "
-        "2 pares de guayos Nike, 2 pares de guayos Adidas y 5 balones profesionales Golty.\n\n"
+        "2 pares de guayos Nike, 2 pares de guayos Adidas y 5 balones profesionales Golty — "
+        "y el premio mayor: una PlayStation, que se juega en la Lotería de Medellín.\n\n"
         "El sorteo se hace por color entre el 1 y el 5 de septiembre de 2026. Cada color tiene "
-        "su propia lotería pública real — revisa abajo qué lotería y qué día le corresponde a "
-        "tu color. Cada código juega las 2 últimas cifras del resultado de esa lotería Y su "
-        "inverso (por ejemplo, si el resultado termina en 47, también gana el 74). Puedes "
-        "verificar el resultado en cualquier punto autorizado o en la página oficial de cada "
-        "lotería."
+        "su propia lotería pública real y su propio premio — revisa abajo qué lotería, qué día "
+        "y qué premio le corresponde a tu color. Cada código juega las 2 últimas cifras del "
+        "resultado de esa lotería Y su inverso (por ejemplo, si el resultado termina en 47, "
+        "también gana el 74). Puedes verificar el resultado en cualquier punto autorizado o en "
+        "la página oficial de cada lotería."
     ),
     "nequi_info": (
         "Ahí están los pasos completos para afiliarte: Nequi Negocios — tu celular como datáfono. "
@@ -69,16 +70,16 @@ SETTINGS_DEFAULTS = {
 
 # ─── 10 Colores (1 sorteo por color, atado a una lotería pública real) ───────
 COLORS = [
-    {"id": "blanco",   "name": "Blanco",       "hex": "#FFFFFF", "text": "#000000", "lottery": "Lotería de la Cruz Roja", "draw_date": "1 de septiembre de 2026"},
-    {"id": "verde",    "name": "Verde Lima",    "hex": "#AEEA00", "text": "#000000", "lottery": "Lotería del Huila",       "draw_date": "1 de septiembre de 2026"},
-    {"id": "amarillo", "name": "Amarillo",      "hex": "#FFD600", "text": "#000000", "lottery": "Lotería de Manizales",    "draw_date": "2 de septiembre de 2026"},
-    {"id": "marino",   "name": "Azul Marino",   "hex": "#1A237E", "text": "#FFFFFF", "lottery": "Lotería del Meta",        "draw_date": "2 de septiembre de 2026"},
-    {"id": "rojo",     "name": "Rojo",          "hex": "#DD2C00", "text": "#FFFFFF", "lottery": "Lotería de Bogotá",       "draw_date": "3 de septiembre de 2026"},
-    {"id": "teal",     "name": "Verde Azulado", "hex": "#004D40", "text": "#FFFFFF", "lottery": "Lotería del Quindío",     "draw_date": "3 de septiembre de 2026"},
-    {"id": "rosa",     "name": "Rosa",          "hex": "#E91E63", "text": "#FFFFFF", "lottery": "Lotería del Tolima",      "draw_date": "3 de septiembre de 2026"},
-    {"id": "naranja",  "name": "Naranja",       "hex": "#E65100", "text": "#FFFFFF", "lottery": "Lotería de Medellín",     "draw_date": "4 de septiembre de 2026"},
-    {"id": "celeste",  "name": "Azul Claro",    "hex": "#81D4FA", "text": "#000000", "lottery": "Lotería de Boyacá",       "draw_date": "5 de septiembre de 2026"},
-    {"id": "negro",    "name": "Negro",         "hex": "#212121", "text": "#FFFFFF", "lottery": "Lotería del Cauca",       "draw_date": "5 de septiembre de 2026"},
+    {"id": "blanco",   "name": "Blanco",       "hex": "#FFFFFF", "text": "#000000", "lottery": "Lotería de la Cruz Roja", "draw_date": "1 de septiembre de 2026", "prize": "Kit Playstation Medellín (guayos/balón)"},
+    {"id": "verde",    "name": "Verde Lima",    "hex": "#AEEA00", "text": "#000000", "lottery": "Lotería del Huila",       "draw_date": "1 de septiembre de 2026", "prize": "Kit Playstation Medellín (guayos/balón)"},
+    {"id": "amarillo", "name": "Amarillo",      "hex": "#FFD600", "text": "#000000", "lottery": "Lotería de Manizales",    "draw_date": "2 de septiembre de 2026", "prize": "Kit Playstation Medellín (guayos/balón)"},
+    {"id": "marino",   "name": "Azul Marino",   "hex": "#1A237E", "text": "#FFFFFF", "lottery": "Lotería del Meta",        "draw_date": "2 de septiembre de 2026", "prize": "Kit Playstation Medellín (guayos/balón)"},
+    {"id": "rojo",     "name": "Rojo",          "hex": "#DD2C00", "text": "#FFFFFF", "lottery": "Lotería de Bogotá",       "draw_date": "3 de septiembre de 2026", "prize": "Kit Playstation Medellín (guayos/balón)"},
+    {"id": "teal",     "name": "Verde Azulado", "hex": "#004D40", "text": "#FFFFFF", "lottery": "Lotería del Quindío",     "draw_date": "3 de septiembre de 2026", "prize": "Kit Playstation Medellín (guayos/balón)"},
+    {"id": "rosa",     "name": "Rosa",          "hex": "#E91E63", "text": "#FFFFFF", "lottery": "Lotería del Tolima",      "draw_date": "3 de septiembre de 2026", "prize": "Kit Playstation Medellín (guayos/balón)"},
+    {"id": "naranja",  "name": "Naranja",       "hex": "#E65100", "text": "#FFFFFF", "lottery": "Lotería de Medellín",     "draw_date": "4 de septiembre de 2026", "prize": "🏆 PlayStation — premio mayor"},
+    {"id": "celeste",  "name": "Azul Claro",    "hex": "#81D4FA", "text": "#000000", "lottery": "Lotería de Boyacá",       "draw_date": "5 de septiembre de 2026", "prize": "Kit Playstation Medellín (guayos/balón)"},
+    {"id": "negro",    "name": "Negro",         "hex": "#212121", "text": "#FFFFFF", "lottery": "Lotería del Cauca",       "draw_date": "5 de septiembre de 2026", "prize": "Kit Playstation Medellín (guayos/balón)"},
 ]
 COLOR_MAP = {c["id"]: c for c in COLORS}
 
