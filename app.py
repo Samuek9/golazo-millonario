@@ -16,7 +16,7 @@ import psycopg2.extras
 import qrcode
 import requests
 from dotenv import load_dotenv
-from flask import Flask, abort, g, jsonify, make_response, render_template, request
+from flask import Flask, abort, g, jsonify, make_response, redirect, render_template, request
 from PIL import Image, ImageDraw, ImageFont
 
 load_dotenv()
@@ -49,37 +49,37 @@ RIFA_NAME = os.getenv("RIFA_NAME", "Golazo Millonario 2026")
 # ─── Ajustes editables desde /admin/settings (premio, Nequi, badge legal) ────
 SETTINGS_DEFAULTS = {
     "prize_description": (
-        "Golazo Millonario 2026 sortea un kit deportivo de Playstation Medellín: "
-        "2 pares de guayos Nike, 2 pares de guayos Adidas y 5 balones profesionales Golty — "
-        "y el premio mayor: una PlayStation, que se juega en la Lotería de Medellín.\n\n"
-        "El sorteo se hace por color entre el 1 y el 5 de septiembre de 2026. Cada color tiene "
-        "su propia lotería pública real y su propio premio — revisa abajo qué lotería, qué día "
-        "y qué premio le corresponde a tu color. Cada código juega las 2 últimas cifras del "
-        "resultado de esa lotería Y su inverso (por ejemplo, si el resultado termina en 47, "
-        "también gana el 74). Puedes verificar el resultado en cualquier punto autorizado o en "
-        "la página oficial de cada lotería."
+        "Golazo Millonario 2026 sortea 2 pares de guayos Nike, 2 pares de guayos Adidas y 5 "
+        "balones profesionales Golty — cada lotería tiene un solo premio, revisa abajo cuál le "
+        "toca a tu color.\n\n"
+        "El premio mayor es una PlayStation, que se juega por la Lotería de Medellín.\n\n"
+        "Cada código juega por las 2 últimas cifras del resultado de su lotería.\n\n"
+        "Puedes verificar el resultado en cualquier punto autorizado o en la página oficial de "
+        "cada lotería."
     ),
     "nequi_info": (
-        "Ahí están los pasos completos para afiliarte: Nequi Negocios — tu celular como datáfono. "
-        "Dale al asesor el código Incentiva03 al vincularte."
+        "Además de tus códigos de la rifa, para participar también debes afiliarte a Nequi "
+        "Negocios. Este paso no es opcional."
     ),
-    "nequi_link": "https://share.google/Qr96gP6kEP7iCTl9d",
+    "nequi_link": "https://www.nequi.com.co/negocios/app-negocios",
     "legal_permit_number": "",
     "show_legal_badge": "false",
 }
 
 # ─── 10 Colores (1 sorteo por color, atado a una lotería pública real) ───────
+# Días de sorteo reales verificados: Tolima lunes, Cruz Roja/Huila martes,
+# Manizales/Meta miércoles, Bogotá/Quindío jueves, Medellín viernes, Boyacá/Cauca sábado.
 COLORS = [
-    {"id": "blanco",   "name": "Blanco",       "hex": "#FFFFFF", "text": "#000000", "lottery": "Lotería de la Cruz Roja", "draw_date": "1 de septiembre de 2026", "prize": "Kit Playstation Medellín (guayos/balón)"},
-    {"id": "verde",    "name": "Verde Lima",    "hex": "#AEEA00", "text": "#000000", "lottery": "Lotería del Huila",       "draw_date": "1 de septiembre de 2026", "prize": "Kit Playstation Medellín (guayos/balón)"},
-    {"id": "amarillo", "name": "Amarillo",      "hex": "#FFD600", "text": "#000000", "lottery": "Lotería de Manizales",    "draw_date": "2 de septiembre de 2026", "prize": "Kit Playstation Medellín (guayos/balón)"},
-    {"id": "marino",   "name": "Azul Marino",   "hex": "#1A237E", "text": "#FFFFFF", "lottery": "Lotería del Meta",        "draw_date": "2 de septiembre de 2026", "prize": "Kit Playstation Medellín (guayos/balón)"},
-    {"id": "rojo",     "name": "Rojo",          "hex": "#DD2C00", "text": "#FFFFFF", "lottery": "Lotería de Bogotá",       "draw_date": "3 de septiembre de 2026", "prize": "Kit Playstation Medellín (guayos/balón)"},
-    {"id": "teal",     "name": "Verde Azulado", "hex": "#004D40", "text": "#FFFFFF", "lottery": "Lotería del Quindío",     "draw_date": "3 de septiembre de 2026", "prize": "Kit Playstation Medellín (guayos/balón)"},
-    {"id": "rosa",     "name": "Rosa",          "hex": "#E91E63", "text": "#FFFFFF", "lottery": "Lotería del Tolima",      "draw_date": "3 de septiembre de 2026", "prize": "Kit Playstation Medellín (guayos/balón)"},
-    {"id": "naranja",  "name": "Naranja",       "hex": "#E65100", "text": "#FFFFFF", "lottery": "Lotería de Medellín",     "draw_date": "4 de septiembre de 2026", "prize": "🏆 PlayStation — premio mayor"},
-    {"id": "celeste",  "name": "Azul Claro",    "hex": "#81D4FA", "text": "#000000", "lottery": "Lotería de Boyacá",       "draw_date": "5 de septiembre de 2026", "prize": "Kit Playstation Medellín (guayos/balón)"},
-    {"id": "negro",    "name": "Negro",         "hex": "#212121", "text": "#FFFFFF", "lottery": "Lotería del Cauca",       "draw_date": "5 de septiembre de 2026", "prize": "Kit Playstation Medellín (guayos/balón)"},
+    {"id": "blanco",   "name": "Blanco",       "hex": "#FFFFFF", "text": "#000000", "lottery": "Lotería de la Cruz Roja", "draw_date": "8 de septiembre de 2026 (martes)",   "prize": "1 par de guayos Nike"},
+    {"id": "verde",    "name": "Verde Lima",    "hex": "#AEEA00", "text": "#000000", "lottery": "Lotería del Huila",       "draw_date": "8 de septiembre de 2026 (martes)",   "prize": "1 par de guayos Nike"},
+    {"id": "amarillo", "name": "Amarillo",      "hex": "#FFD600", "text": "#000000", "lottery": "Lotería de Manizales",    "draw_date": "9 de septiembre de 2026 (miércoles)", "prize": "1 par de guayos Adidas"},
+    {"id": "marino",   "name": "Azul Marino",   "hex": "#1A237E", "text": "#FFFFFF", "lottery": "Lotería del Meta",        "draw_date": "9 de septiembre de 2026 (miércoles)", "prize": "1 par de guayos Adidas"},
+    {"id": "rojo",     "name": "Rojo",          "hex": "#DD2C00", "text": "#FFFFFF", "lottery": "Lotería de Bogotá",       "draw_date": "10 de septiembre de 2026 (jueves)",  "prize": "1 balón profesional Golty"},
+    {"id": "teal",     "name": "Verde Azulado", "hex": "#004D40", "text": "#FFFFFF", "lottery": "Lotería del Quindío",     "draw_date": "10 de septiembre de 2026 (jueves)",  "prize": "1 balón profesional Golty"},
+    {"id": "rosa",     "name": "Rosa",          "hex": "#E91E63", "text": "#FFFFFF", "lottery": "Lotería del Tolima",      "draw_date": "7 de septiembre de 2026 (lunes)",    "prize": "1 balón profesional Golty"},
+    {"id": "naranja",  "name": "Naranja",       "hex": "#E65100", "text": "#FFFFFF", "lottery": "Lotería de Medellín",     "draw_date": "11 de septiembre de 2026 (viernes)", "prize": "🏆 PlayStation — premio mayor"},
+    {"id": "celeste",  "name": "Azul Claro",    "hex": "#81D4FA", "text": "#000000", "lottery": "Lotería de Boyacá",       "draw_date": "5 de septiembre de 2026 (sábado)",   "prize": "1 balón profesional Golty"},
+    {"id": "negro",    "name": "Negro",         "hex": "#212121", "text": "#FFFFFF", "lottery": "Lotería del Cauca",       "draw_date": "5 de septiembre de 2026 (sábado)",   "prize": "1 balón profesional Golty"},
 ]
 COLOR_MAP = {c["id"]: c for c in COLORS}
 
@@ -206,6 +206,13 @@ def init_db():
                 value TEXT NOT NULL DEFAULT ''
             );
 
+            CREATE TABLE IF NOT EXISTS link_clicks (
+                id         SERIAL PRIMARY KEY,
+                link_id    TEXT NOT NULL,
+                clicked_at TIMESTAMPTZ DEFAULT NOW()
+            );
+
+            CREATE INDEX IF NOT EXISTS idx_link_clicks_id ON link_clicks(link_id);
             CREATE INDEX IF NOT EXISTS idx_balotas_status ON balotas(status);
             CREATE INDEX IF NOT EXISTS idx_balotas_color  ON balotas(color);
             CREATE INDEX IF NOT EXISTS idx_balotas_order  ON balotas(order_id);
@@ -908,6 +915,13 @@ def pase_image(token):
     return resp
 
 
+@app.route("/ir/nequi")
+def ir_nequi():
+    db_exec("INSERT INTO link_clicks (link_id) VALUES ('nequi_tutorial')")
+    settings = get_settings()
+    return redirect(settings.get("nequi_link") or "https://www.nequi.com.co/negocios/app-negocios", code=302)
+
+
 @app.route("/terminos")
 def terminos():
     return render_template("terminos.html", rifa_name=RIFA_NAME, settings=get_settings(), colors=COLORS)
@@ -931,6 +945,7 @@ def admin_panel():
         "codes_sold":     db_scalar("SELECT COUNT(*) FROM balotas WHERE status='SOLD'") or 0,
         "codes_available":db_scalar("SELECT COUNT(*) FROM balotas WHERE status='AVAILABLE'") or 0,
         "revenue_cop":    db_scalar("SELECT COALESCE(SUM(total_amount),0) FROM orders WHERE status='PAID'") or 0,
+        "nequi_clicks":   db_scalar("SELECT COUNT(*) FROM link_clicks WHERE link_id='nequi_tutorial'") or 0,
     }
 
     # Per-color stats with buyer list
