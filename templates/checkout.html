@@ -8,7 +8,7 @@
     <div class="checkout-header">
       <div class="checkout-icon">🎟️</div>
       <h2>Confirma tu compra</h2>
-      <p>Tus códigos están <strong>reservados {{ expires_minutes }} minutos</strong>. Paga antes de que expire.</p>
+      <p>Tus números están <strong>reservados {{ expires_minutes }} minutos</strong>. Paga antes de que expire.</p>
       <div class="timer-bar"><div id="timer-fill" class="timer-fill"></div></div>
       <div id="timer-text" class="timer-text">{{ expires_minutes }}:00</div>
     </div>
@@ -17,8 +17,8 @@
       <div class="summary-row"><span>Comprador</span><strong>{{ buyer_name }}</strong></div>
       <div class="summary-row"><span>Email</span><strong>{{ buyer_email }}</strong></div>
       <div class="summary-row"><span>Paquetes</span><strong>{{ packs }} paquete{% if packs > 1 %}s{% endif %}</strong></div>
-      <div class="summary-row"><span>Códigos de afiliación</span><strong>{{ total_codes }} ({{ packs }}×10)</strong></div>
-      <div class="summary-row"><span>Precio por código</span><strong>${{ "{:,.0f}".format(unit_price) }} COP</strong></div>
+      <div class="summary-row"><span>Números</span><strong>{{ total_codes }} ({{ packs }}×10)</strong></div>
+      <div class="summary-row"><span>Precio por número</span><strong>${{ "{:,.0f}".format(unit_price) }} COP</strong></div>
       <div class="summary-row total">
         <span>TOTAL</span>
         <strong>${{ "{:,.0f}".format(total_amount) }} COP</strong>
@@ -27,7 +27,7 @@
 
     <!-- Codes by color -->
     <div class="codes-section">
-      <h3>Tus códigos</h3>
+      <h3>Tus números</h3>
       {% for group in codes_by_color %}
       <div class="color-row">
         <div class="color-dot" style="background:{{ group.hex }}"></div>

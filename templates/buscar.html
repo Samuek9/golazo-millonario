@@ -1,12 +1,12 @@
 {% extends "base.html" %}
-{% block title %}Buscar mis códigos{% endblock %}
+{% block title %}Buscar mis números{% endblock %}
 
 {% block content %}
 <section class="buscar-section" style="max-width:700px;margin:40px auto;padding:0 16px">
 
   <div style="text-align:center;margin-bottom:32px">
-    <h2 style="color:#fff;font-size:1.8rem;margin-bottom:8px">🔍 Buscar mis códigos</h2>
-    <p style="color:#90CAF9">Ingresa el correo con el que te registraste para ver tus códigos de acceso.</p>
+    <h2 style="color:#fff;font-size:1.8rem;margin-bottom:8px">🔍 Buscar mis números</h2>
+    <p style="color:#90CAF9">Ingresa el correo con el que te registraste para ver tus números.</p>
   </div>
 
   <form method="POST" action="/buscar"
@@ -61,7 +61,7 @@
     </div>
 
     <p style="color:#90CAF9;margin:0 0 12px;font-size:0.85rem">
-      {{ item.order.quantity }} códigos · ${{ "{:,.0f}".format(item.order.total_amount) }} COP
+      {{ item.order.quantity }} números · ${{ "{:,.0f}".format(item.order.total_amount) }} COP
     </p>
 
     {% if item.codes_by_color %}

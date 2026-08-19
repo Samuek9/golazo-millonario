@@ -11,7 +11,7 @@
     <p class="ref-note">Referencia: <code>{{ order_ref }}</code></p>
     {% if access_token %}
     <a href="/mi-cuenta/{{ access_token }}" class="btn-primary" style="display:inline-block;margin-bottom:10px">
-      Ver mis códigos →
+      Ver mis números →
     </a><br>
     {% endif %}
     <a href="/buscar" class="btn-secondary">🔍 Buscar por correo</a>
@@ -19,7 +19,7 @@
     {% elif status in ('DECLINED', 'VOIDED', 'ERROR') %}
     <div class="resultado-icon error">❌</div>
     <h2>Pago no completado</h2>
-    <p>Tu pago fue rechazado o cancelado. Los códigos reservados fueron liberados.</p>
+    <p>Tu pago fue rechazado o cancelado. Los números reservados fueron liberados.</p>
     <p class="ref-note">Referencia: <code>{{ order_ref }}</code></p>
     <a href="/" class="btn-primary">Intentar de nuevo</a>
 

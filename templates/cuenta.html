@@ -11,7 +11,7 @@
   {% if not orders %}
   <div class="empty-state">
     <p>Aún no tienes órdenes registradas.</p>
-    <a href="/" class="btn-primary">Comprar códigos</a>
+    <a href="/" class="btn-primary">Comprar números</a>
   </div>
   {% endif %}
 
@@ -33,7 +33,7 @@
 
     <div class="order-card-body">
       <div class="order-meta">
-        <span>{{ item.order.quantity }} códigos · {{ item.order.packs }} paquete{% if item.order.packs > 1 %}s{% endif %}</span>
+        <span>{{ item.order.quantity }} números · {{ item.order.packs }} paquete{% if item.order.packs > 1 %}s{% endif %}</span>
         <span>${{ "{:,.0f}".format(item.order.total_amount) }} COP</span>
       </div>
 
@@ -77,7 +77,7 @@
   {% if has_paid.value %}
   <div class="pass-section">
     <h3>Tu Pase Digital</h3>
-    <p style="color:#90CAF9">Comprobante de tus códigos de afiliación a Golazo Millonario.</p>
+    <p style="color:#90CAF9">Comprobante de tus números en Golazo Millonario.</p>
     <img src="/pase/{{ buyer.access_token }}.png" alt="Pase Digital"
          style="max-width:100%;border-radius:12px;border:2px solid #1565C0;margin-top:12px">
     <br>

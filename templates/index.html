@@ -16,12 +16,12 @@
   <div class="stats-bar">
     <div class="stat">
       <span class="stat-num">${{ "{:,.0f}".format(code_price) }}</span>
-      <span class="stat-label">por código oficial</span>
+      <span class="stat-label">por número oficial</span>
     </div>
     <div class="stat-divider"></div>
     <div class="stat">
       <span class="stat-num">${{ "{:,.0f}".format(pack_price) }}</span>
-      <span class="stat-label">paquete mínimo (10 códigos)</span>
+      <span class="stat-label">paquete mínimo (10 números)</span>
     </div>
     <div class="stat-divider"></div>
     <div class="stat">
@@ -41,7 +41,7 @@
 
 <!-- Color reference grid -->
 <section class="color-grid-section">
-  <p class="color-grid-label">Un código por cada color · el ganador sale de las 2 últimas cifras de su lotería, el día indicado</p>
+  <p class="color-grid-label">Un número por cada color · el ganador sale de las 2 últimas cifras de su lotería, el día indicado</p>
   <div class="color-circles">
     {% for c in colors %}
     <div class="color-circle-wrap">
@@ -100,7 +100,7 @@
 
       <div class="quantity-section">
         <label>¿Cuántos paquetes quieres?</label>
-        <p class="qty-hint">1 paquete = 10 códigos (1 por cada color)</p>
+        <p class="qty-hint">1 paquete = 10 números (1 por cada color)</p>
         <div class="quantity-controls">
           <button type="button" class="qty-btn" id="qty-minus">−</button>
           <input type="number" id="packs_display" value="1" min="1" max="{{ max_packs }}" readonly>
@@ -108,7 +108,7 @@
         </div>
         <input type="hidden" name="packs" id="packs_hidden" value="1">
         <div class="price-preview">
-          <span id="codes-count">10 códigos</span> ·
+          <span id="codes-count">10 números</span> ·
           Total: <strong id="price-total">${{ "{:,.0f}".format(pack_price) }} COP</strong>
         </div>
       </div>
@@ -131,14 +131,14 @@
     <h3>¿Cómo funciona?</h3>
     <ol class="steps">
       <li><strong>Regístrate</strong> con tus datos.</li>
-      <li><strong>Elige paquetes</strong> — mínimo 1 paquete (10 códigos).</li>
-      <li>Recibes <strong>1 código por color</strong> — 10 paletas independientes, cada una del 00 al 99.</li>
-      <li>Cada color se sortea por una <strong>lotería pública real</strong> entre el 1 y el 5 de septiembre.</li>
+      <li><strong>Elige paquetes</strong> — mínimo 1 paquete (10 números).</li>
+      <li>Recibes <strong>1 número por color</strong> — 10 paletas independientes, cada una del 00 al 99.</li>
+      <li>Cada color se sortea por una <strong>lotería pública real</strong>, entre el 5 y el 11 de septiembre.</li>
       <li><strong>Paga</strong> con tarjeta, PSE, Nequi o Daviplata.</li>
-      <li>Recibes tu <strong>Pase Digital</strong> por correo con todos tus códigos.</li>
+      <li>Recibes tu <strong>Pase Digital</strong> por correo con todos tus números.</li>
     </ol>
     <div class="info-note">
-      Cada color tiene códigos del 00 al 99. Los códigos se asignan de forma totalmente aleatoria.
+      Cada color tiene números del 00 al 99. Los números se asignan de forma totalmente aleatoria.
     </div>
   </div>
 </section>
@@ -181,7 +181,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const v = parseInt(display.value);
     hidden.value = v;
     total.textContent = '$' + (v * packPrice).toLocaleString('es-CO') + ' COP';
-    count.textContent = (v * 10) + ' códigos';
+    count.textContent = (v * 10) + ' números';
     minus.disabled = v <= 1;
     plus.disabled  = v >= maxPacks;
   }

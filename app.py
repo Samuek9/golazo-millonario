@@ -53,12 +53,12 @@ SETTINGS_DEFAULTS = {
         "balones profesionales Golty — cada lotería tiene un solo premio, revisa abajo cuál le "
         "toca a tu color.\n\n"
         "El premio mayor es una PlayStation, que se juega por la Lotería de Medellín.\n\n"
-        "Cada código juega por las 2 últimas cifras del resultado de su lotería.\n\n"
+        "Cada número juega por las 2 últimas cifras del resultado de su lotería.\n\n"
         "Puedes verificar el resultado en cualquier punto autorizado o en la página oficial de "
         "cada lotería."
     ),
     "nequi_info": (
-        "Además de tus códigos de la rifa, para participar también debes afiliarte a Nequi "
+        "Además de tus números de la rifa, para participar también debes afiliarte a Nequi "
         "Negocios. Este paso no es opcional."
     ),
     "nequi_link": "https://www.nequi.com.co/negocios/app-negocios",
@@ -432,7 +432,7 @@ def generate_pass_image(buyer_name: str, codes: list, access_token: str) -> byte
 
     # Header
     draw.text((70, 40),  "GOLAZO MILLONARIO", fill="#FFFFFF", font=f_title)
-    draw.text((70, 122), "2026  ·  Códigos de Afiliación", fill="#90CAF9", font=f_year)
+    draw.text((70, 122), "2026  ·  Tus Números", fill="#90CAF9", font=f_year)
     draw.rectangle([(70, 185), (900, 188)], fill="#1976D2")
 
     # Buyer name
@@ -526,10 +526,10 @@ def send_confirmation_email(buyer: dict, codes: list, pass_bytes: bytes):
         f'<h1 style="margin:0 0 4px;font-size:2rem">GOLAZO MILLONARIO</h1>'
         f'<p style="color:#90CAF9;margin:0 0 20px;font-style:italic">2026</p>'
         f'<p>Hola <strong>{buyer["full_name"]}</strong>,</p>'
-        f'<p>¡Tus <strong>códigos de afiliación</strong> han sido confirmados!</p>'
+        f'<p>¡Tus <strong>números</strong> han sido confirmados!</p>'
         f'<table style="width:100%;border-collapse:collapse;background:rgba(255,255,255,.08);'
         f'border-radius:8px;overflow:hidden;margin:16px 0">{rows_html}</table>'
-        f'<p>Total de códigos: <strong>{len(codes)}</strong></p>'
+        f'<p>Total de números: <strong>{len(codes)}</strong></p>'
         f'<a href="{APP_URL}/mi-cuenta/{buyer["access_token"]}"'
         f' style="display:inline-block;background:#E91E63;color:#fff;padding:12px 24px;'
         f'border-radius:6px;text-decoration:none;font-weight:bold;margin:12px 0">'
@@ -541,7 +541,7 @@ def send_confirmation_email(buyer: dict, codes: list, pass_bytes: bytes):
     payload = {
         "from": EMAIL_FROM,
         "to": [buyer["email"]],
-        "subject": f"¡Tus códigos de afiliación! {RIFA_NAME}",
+        "subject": f"¡Tus números! {RIFA_NAME}",
         "html": html,
         "attachments": [{
             "filename": "pase_golazo_millonario.png",
@@ -676,7 +676,7 @@ def reservar():
             rifa_name=RIFA_NAME, code_price=CODE_PRICE_COP,
             pack_price=CODE_PRICE_COP * 10, available_packs=0,
             max_packs=MAX_PACKS, colors=COLORS, sold=0, settings=get_settings(),
-            error="No hay suficientes códigos disponibles. Intenta con menos paquetes.",
+            error="No hay suficientes números disponibles. Intenta con menos paquetes.",
         ), 409
 
     reference   = f"{REFERENCE_PREFIX}-{order_id}"
@@ -688,7 +688,7 @@ def reservar():
             link_data = wompi_create_payment_link(
                 amount_cop=total_amount,
                 reference=reference,
-                description=f"{packs} paquete(s) — {total_codes} códigos de afiliación",
+                description=f"{packs} paquete(s) — {total_codes} números",
             )
             link_id = str(link_data.get("id", ""))
             payment_url = (
