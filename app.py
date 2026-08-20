@@ -16,7 +16,7 @@ import psycopg2.extras
 import qrcode
 import requests
 from dotenv import load_dotenv
-from flask import Flask, abort, g, jsonify, make_response, redirect, render_template, request
+from flask import Flask, abort, g, jsonify, make_response, render_template, request
 from PIL import Image, ImageDraw, ImageFont
 
 load_dotenv()
@@ -46,7 +46,7 @@ EMAIL_FROM     = os.getenv("DEFAULT_FROM_EMAIL", "onboarding@resend.dev")
 
 RIFA_NAME = os.getenv("RIFA_NAME", "Golazo Millonario 2026")
 
-# ─── Ajustes editables desde /admin/settings (premio, Nequi, badge legal) ────
+# ─── Ajustes editables desde /admin/settings (premio, badge legal) ──────────
 SETTINGS_DEFAULTS = {
     "prize_description": (
         "Golazo Millonario 2026 sortea 2 pares de guayos Nike, 2 pares de guayos Adidas y 5 "
@@ -57,11 +57,6 @@ SETTINGS_DEFAULTS = {
         "Puedes verificar el resultado en cualquier punto autorizado o en la página oficial de "
         "cada lotería."
     ),
-    "nequi_info": (
-        "Además de tus números de la rifa, para participar también debes afiliarte a Nequi "
-        "Negocios. Este paso no es opcional."
-    ),
-    "nequi_link": "https://www.nequi.com.co/negocios/app-negocios",
     "legal_permit_number": "",
     "show_legal_badge": "false",
 }
@@ -206,13 +201,6 @@ def init_db():
                 value TEXT NOT NULL DEFAULT ''
             );
 
-            CREATE TABLE IF NOT EXISTS link_clicks (
-                id         SERIAL PRIMARY KEY,
-                link_id    TEXT NOT NULL,
-                clicked_at TIMESTAMPTZ DEFAULT NOW()
-            );
-
-            CREATE INDEX IF NOT EXISTS idx_link_clicks_id ON link_clicks(link_id);
             CREATE INDEX IF NOT EXISTS idx_balotas_status ON balotas(status);
             CREATE INDEX IF NOT EXISTS idx_balotas_color  ON balotas(color);
             CREATE INDEX IF NOT EXISTS idx_balotas_order  ON balotas(order_id);
@@ -248,7 +236,7 @@ def init_db():
         conn.close()
 
 
-# ─── Settings editables (premio, Nequi Negocios, badge legal) ────────────────
+# ─── Settings editables (premio, badge legal) ───────────────────────────────
 def get_settings() -> dict:
     rows = db_all("SELECT key, value FROM settings")
     result = dict(SETTINGS_DEFAULTS)
@@ -915,13 +903,6 @@ def pase_image(token):
     return resp
 
 
-@app.route("/ir/nequi")
-def ir_nequi():
-    db_exec("INSERT INTO link_clicks (link_id) VALUES ('nequi_tutorial')")
-    settings = get_settings()
-    return redirect(settings.get("nequi_link") or "https://www.nequi.com.co/negocios/app-negocios", code=302)
-
-
 @app.route("/terminos")
 def terminos():
     return render_template("terminos.html", rifa_name=RIFA_NAME, settings=get_settings(), colors=COLORS)
@@ -945,7 +926,6 @@ def admin_panel():
         "codes_sold":     db_scalar("SELECT COUNT(*) FROM balotas WHERE status='SOLD'") or 0,
         "codes_available":db_scalar("SELECT COUNT(*) FROM balotas WHERE status='AVAILABLE'") or 0,
         "revenue_cop":    db_scalar("SELECT COALESCE(SUM(total_amount),0) FROM orders WHERE status='PAID'") or 0,
-        "nequi_clicks":   db_scalar("SELECT COUNT(*) FROM link_clicks WHERE link_id='nequi_tutorial'") or 0,
     }
 
     # Per-color stats with buyer list
@@ -1049,8 +1029,6 @@ def admin_settings():
     saved = False
     if request.method == "POST":
         set_setting("prize_description", request.form.get("prize_description", "").strip())
-        set_setting("nequi_info", request.form.get("nequi_info", "").strip())
-        set_setting("nequi_link", request.form.get("nequi_link", "").strip())
         set_setting("legal_permit_number", request.form.get("legal_permit_number", "").strip())
         set_setting("show_legal_badge", "true" if request.form.get("show_legal_badge") else "false")
         saved = True
