@@ -304,21 +304,6 @@ def wompi_integrity_hash(reference: str, amount_cents: int) -> str:
     return hashlib.sha256(raw.encode()).hexdigest()
 
 
-def wompi_find_approved_transaction(reference: str) -> str:
-    """Devuelve el transaction ID si la referencia tiene una transacción APPROVED."""
-    url = f"{WOMPI_BASE}/transactions?reference={reference}"
-    headers = {"Authorization": f"Bearer {WOMPI_PRIVATE_KEY}"}
-    try:
-        resp = requests.get(url, headers=headers, timeout=10)
-        if resp.ok:
-            for tx in resp.json().get("data", []):
-                if tx.get("status") == "APPROVED":
-                    return str(tx.get("id", ""))
-    except Exception as e:
-        app.logger.warning(f"wompi_find_approved_transaction error: {e}")
-    return ""
-
-
 def wompi_get_transaction(tx_id: str) -> dict:
     """Obtiene una transacción por su ID."""
     url = f"{WOMPI_BASE}/transactions/{tx_id}"
@@ -1030,23 +1015,6 @@ def admin_ordenes():
     """)
     return jsonify([dict(r) for r in rows])
 
-
-@app.route("/admin/confirmar/<int:order_id>")
-def admin_confirmar(order_id):
-    if request.args.get("secret", "") != os.getenv("ADMIN_SECRET", ""):
-        abort(403)
-    order = db_one("SELECT * FROM orders WHERE id=%s", (order_id,))
-    if not order:
-        return jsonify({"error": "orden no encontrada"}), 404
-    if order["status"] == "PAID":
-        return jsonify({"ok": True, "msg": "ya estaba pagada"})
-    # Buscar tx aprobado en Wompi
-    ref = f"{REFERENCE_PREFIX}-{order_id}"
-    tx_id = wompi_find_approved_transaction(ref)
-    if not tx_id:
-        tx_id = f"MANUAL-{order_id}"  # confirmar manualmente sin tx real
-    confirm_order(order_id, tx_id)
-    return jsonify({"ok": True, "msg": f"orden {order_id} confirmada", "tx_id": tx_id})
 
 
 @app.route("/admin/settings", methods=["GET", "POST"])
