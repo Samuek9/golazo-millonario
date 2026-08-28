@@ -8,6 +8,7 @@ import io
 import os
 import uuid
 from datetime import datetime, timedelta, timezone
+from functools import wraps
 
 import base64
 
@@ -16,13 +17,24 @@ import psycopg2.extras
 import qrcode
 import requests
 from dotenv import load_dotenv
-from flask import Flask, abort, g, jsonify, make_response, render_template, request
+from flask import Flask, abort, g, jsonify, make_response, redirect, render_template, request, session
 from PIL import Image, ImageDraw, ImageFont
 
 load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY", "dev-secret-golazo-2026")
+app.permanent_session_lifetime = timedelta(days=14)
+app.config.update(SESSION_COOKIE_HTTPONLY=True, SESSION_COOKIE_SAMESITE="Lax")
+
+
+def admin_required(view):
+    @wraps(view)
+    def wrapped(*args, **kwargs):
+        if not session.get("is_admin"):
+            return redirect(f"/admin/login?next={request.path}")
+        return view(*args, **kwargs)
+    return wrapped
 
 # ─── Config ──────────────────────────────────────────────────────────────────
 DATABASE_URL        = os.getenv("DATABASE_URL", "")
@@ -926,10 +938,27 @@ def privacidad():
     return render_template("privacidad.html", rifa_name=RIFA_NAME)
 
 
+@app.route("/admin/login", methods=["GET", "POST"])
+def admin_login():
+    error = ""
+    if request.method == "POST":
+        if request.form.get("password", "") == os.getenv("ADMIN_SECRET", ""):
+            session.permanent = True
+            session["is_admin"] = True
+            return redirect(request.args.get("next") or "/admin")
+        error = "Clave incorrecta."
+    return render_template("admin_login.html", error=error)
+
+
+@app.route("/admin/logout")
+def admin_logout():
+    session.pop("is_admin", None)
+    return redirect("/admin/login")
+
+
 @app.route("/admin")
+@admin_required
 def admin_panel():
-    if request.args.get("secret", "") != os.getenv("ADMIN_SECRET", ""):
-        abort(403)
 
     # Global stats
     stats = {
@@ -997,15 +1026,13 @@ def admin_panel():
         orders=[dict(r) for r in orders],
         buyers=buyers,
         settings=get_settings(),
-        admin_secret=os.getenv("ADMIN_SECRET", ""),
         now=datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
     )
 
 
 @app.route("/admin/ordenes")
+@admin_required
 def admin_ordenes():
-    if request.args.get("secret", "") != os.getenv("ADMIN_SECRET", ""):
-        abort(403)
     rows = db_all("""
         SELECT o.id, o.status, o.packs, o.total_amount, o.wompi_transaction_id,
                o.wompi_payment_link_url, o.reservation_expires_at, o.created_at,
@@ -1018,10 +1045,8 @@ def admin_ordenes():
 
 
 @app.route("/admin/settings", methods=["GET", "POST"])
+@admin_required
 def admin_settings():
-    if request.args.get("secret", "") != os.getenv("ADMIN_SECRET", ""):
-        abort(403)
-
     saved = False
     if request.method == "POST":
         set_setting("prize_description", request.form.get("prize_description", "").strip())
@@ -1031,15 +1056,13 @@ def admin_settings():
 
     return render_template("admin_settings.html",
         settings=get_settings(),
-        admin_secret=os.getenv("ADMIN_SECRET", ""),
         saved=saved,
     )
 
 
 @app.route("/admin/test-email")
+@admin_required
 def admin_test_email():
-    if request.args.get("secret", "") != os.getenv("ADMIN_SECRET", ""):
-        abort(403)
     to = request.args.get("to", "samuelvasquez0804@gmail.com")
     payload = {
         "from": EMAIL_FROM,
@@ -1066,10 +1089,8 @@ def admin_test_email():
 
 
 @app.route("/debug-env")
+@admin_required
 def debug_env():
-    secret = request.args.get("s", "")
-    if secret != os.getenv("ADMIN_SECRET", ""):
-        abort(403)
     def mask(v):
         return v[:6] + "…" + v[-4:] if v and len(v) > 10 else ("(vacía)" if not v else v)
     return jsonify({
@@ -1084,9 +1105,8 @@ def debug_env():
 
 
 @app.route("/admin/stats")
+@admin_required
 def admin_stats():
-    if request.args.get("secret", "") != os.getenv("ADMIN_SECRET", ""):
-        abort(403)
     stats = {"colors": {}}
     for color in COLORS:
         cid = color["id"]

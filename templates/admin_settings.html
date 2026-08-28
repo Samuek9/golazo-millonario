@@ -32,7 +32,7 @@
 <body>
   <div class="top-bar">
     <h1>⚙️ Configuración — Golazo Millonario</h1>
-    <a href="/admin?secret={{ admin_secret }}">← Volver al panel</a>
+    <a href="/admin">← Volver al panel</a>
   </div>
 
   <div class="container">
@@ -40,7 +40,7 @@
     <div class="saved-banner">✅ Cambios guardados. Ya se reflejan en la página principal.</div>
     {% endif %}
 
-    <form method="POST" action="/admin/settings?secret={{ admin_secret }}">
+    <form method="POST" action="/admin/settings">
       <div class="card">
         <div class="field">
           <label>🏆 Premio y mecanismo del sorteo</label>
