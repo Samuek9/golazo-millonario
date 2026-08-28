@@ -270,6 +270,9 @@ def wompi_create_payment_link(amount_cop: int, reference: str, description: str)
         "amount_in_cents": amount_cop * 100,
         "redirect_url": f"{APP_URL}/pago/resultado",
         "reference": reference,
+        # El link muere junto con la reserva de números — evita que alguien pague
+        # tarde por unos números que ya se liberaron y le tocaron a otro.
+        "expiration_time": (now_utc() + timedelta(minutes=RESERVATION_MINUTES)).isoformat(),
     }
     app.logger.info(f"Wompi POST {url} | key={WOMPI_PRIVATE_KEY[:12]}... | cents={amount_cop*100}")
     try:
@@ -327,6 +330,28 @@ def wompi_get_transaction(tx_id: str) -> dict:
     except Exception as e:
         app.logger.warning(f"wompi_get_transaction error: {e}")
     return {}
+
+
+def find_order_id_by_wompi_reference(reference: str):
+    """Los Payment Links de Wompi NO conservan la 'reference' que mandamos al crearlos —
+    Wompi genera la suya propia con forma '{payment_link_id}_{timestamp}_{hash}' en el
+    momento del pago. Extraemos el payment_link_id (todo antes del primer '_') y
+    buscamos qué orden es dueña de ese link."""
+    if not reference:
+        return None
+    if reference.startswith(f"{REFERENCE_PREFIX}-"):
+        try:
+            return int(reference.split("-")[1])
+        except (IndexError, ValueError):
+            return None
+    link_id = reference.split("_")[0]
+    if not link_id:
+        return None
+    row = db_one(
+        "SELECT id FROM orders WHERE wompi_payment_link_id=%s ORDER BY id DESC LIMIT 1",
+        (link_id,),
+    )
+    return row["id"] if row else None
 
 
 def confirm_order(order_id: int, tx_id: str):
@@ -743,17 +768,24 @@ def pago_resultado():
         except Exception as e:
             app.logger.error(f"pago_resultado tx lookup error: {e}")
 
-    if ref.startswith(f"{REFERENCE_PREFIX}-"):
+    order_id = find_order_id_by_wompi_reference(ref)
+    if order_id is not None:
         try:
-            order_id = int(ref.split("-")[1])
             order = db_one("SELECT * FROM orders WHERE id=%s", (order_id,))
             if order:
                 buyer = db_one("SELECT * FROM buyers WHERE id=%s", (order["buyer_id"],))
                 if buyer:
                     access_token = buyer["access_token"]
 
-                if order["status"] == "PENDING":
-                    confirmed_tx = tx_id if status == "APPROVED" else wompi_find_approved_transaction(ref)
+                if order["status"] in ("PENDING", "EXPIRED"):
+                    confirmed_tx = ""
+                    if status == "APPROVED" and tx_id:
+                        confirmed_tx = tx_id
+                    elif tx_id:
+                        tx = wompi_get_transaction(tx_id)
+                        if tx.get("status") == "APPROVED":
+                            confirmed_tx = tx_id
+                            status = "APPROVED"
                     if confirmed_tx:
                         confirm_order(order_id, confirmed_tx)
                         status = "APPROVED"
@@ -839,12 +871,8 @@ def wompi_webhook():
     app.logger.info(f"WEBHOOK_FULL: {_json.dumps(event)[:800]}")
     app.logger.info(f"Webhook event={event_type} ref={reference} status={wompi_status} tx={wompi_tx_id}")
 
-    if event_type != "transaction.updated" or not reference.startswith(f"{REFERENCE_PREFIX}-"):
-        return "", 200
-
-    try:
-        order_id = int(reference.split("-")[1])
-    except (IndexError, ValueError):
+    order_id = find_order_id_by_wompi_reference(reference)
+    if event_type != "transaction.updated" or order_id is None:
         return "", 200
 
     if wompi_status == "APPROVED":
