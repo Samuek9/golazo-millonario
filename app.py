@@ -1176,9 +1176,49 @@ def admin_audit_wompi():
             WHERE o.status IN ('PENDING','EXPIRED')
             ORDER BY o.id DESC
         """)
+    # El GET /payment_links/{id} no refleja si se pagó (el campo "active" no cambia
+    # y "reference" se regenera en cada consulta). El único dato confiable es la
+    # lista real de transacciones de Wompi: filter[payment_link_id]/payment_link_id
+    # como query param NO filtran server-side (Wompi los ignora en silencio y
+    # devuelve la misma página completa) — así que traemos todas las transacciones
+    # del rango de fechas y cruzamos por payment_link_id en memoria.
+    from_date = request.args.get("from_date", "2026-08-01T00:00:00.000Z")
+    until_date = request.args.get("until_date", now_utc().isoformat())
+    all_tx = []
+    page = 1
+    while True:
+        try:
+            resp = requests.get(
+                f"{WOMPI_BASE}/transactions",
+                params={"from_date": from_date, "until_date": until_date, "page": page, "page_size": 200},
+                headers={"Authorization": f"Bearer {WOMPI_PRIVATE_KEY}"},
+                timeout=15,
+            )
+        except Exception as e:
+            return jsonify({"error": f"fallo consultando Wompi (page {page}): {e}"}), 502
+        if not resp.ok:
+            return jsonify({"error": f"Wompi HTTP {resp.status_code}: {resp.text[:300]}"}), 502
+        page_data = resp.json().get("data", [])
+        if not page_data:
+            break
+        all_tx.extend(page_data)
+        if len(page_data) < 200:
+            break
+        page += 1
+        if page > 20:  # tope de seguridad, ~4000 transacciones
+            break
+
+    tx_by_link = {}
+    for tx in all_tx:
+        lid = tx.get("payment_link_id")
+        if lid:
+            tx_by_link.setdefault(lid, []).append(tx)
+
     results = []
     for o in orders:
-        entry = {
+        link_id = o["wompi_payment_link_id"]
+        matches = tx_by_link.get(link_id, []) if link_id else []
+        results.append({
             "order_id": o["id"],
             "status_db": o["status"],
             "wompi_transaction_id_db": o["wompi_transaction_id"],
@@ -1186,29 +1226,24 @@ def admin_audit_wompi():
             "email": o["email"],
             "total_amount": o["total_amount"],
             "created_at": str(o["created_at"]),
-            "payment_link_id": o["wompi_payment_link_id"],
-        }
-        link_id = o["wompi_payment_link_id"]
-        if not link_id:
-            entry["wompi_check"] = "sin payment_link_id guardado"
-            results.append(entry)
-            continue
-        try:
-            resp = requests.get(
-                f"{WOMPI_BASE}/payment_links/{link_id}",
-                headers={"Authorization": f"Bearer {WOMPI_PRIVATE_KEY}"},
-                timeout=10,
-            )
-            if resp.ok:
-                data = resp.json().get("data", {})
-                entry["wompi_raw"] = data
-            else:
-                entry["wompi_check"] = f"HTTP {resp.status_code}: {resp.text[:200]}"
-        except Exception as e:
-            entry["wompi_check"] = f"error: {e}"
-        results.append(entry)
+            "payment_link_id": link_id,
+            "wompi_transactions_found": [
+                {
+                    "id": tx.get("id"),
+                    "status": tx.get("status"),
+                    "amount_in_cents": tx.get("amount_in_cents"),
+                    "finalized_at": tx.get("finalized_at"),
+                    "payment_method_type": tx.get("payment_method_type"),
+                }
+                for tx in matches
+            ],
+        })
 
-    return jsonify(results)
+    return jsonify({
+        "total_transactions_scanned": len(all_tx),
+        "date_range": {"from": from_date, "until": until_date},
+        "orders": results,
+    })
 
 
 @app.route("/admin/debug-wompi-search")
