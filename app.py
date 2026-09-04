@@ -6,6 +6,7 @@ import hashlib
 import hmac
 import io
 import os
+import re
 import uuid
 from datetime import datetime, timedelta, timezone
 from functools import wraps
@@ -226,6 +227,13 @@ def init_db():
             ALTER TABLE orders ADD COLUMN IF NOT EXISTS packs INTEGER NOT NULL DEFAULT 1
         """)
 
+        # ── Migrate: cash-payment reconciliation trail ────────────────────────
+        cur.execute("""
+            ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_method TEXT DEFAULT 'WOMPI';
+            ALTER TABLE orders ADD COLUMN IF NOT EXISTS cash_note TEXT DEFAULT '';
+            ALTER TABLE orders ADD COLUMN IF NOT EXISTS cash_confirmed_at TIMESTAMPTZ
+        """)
+
         # ── Seed 10 colors × 100 = 1,000 códigos (00–99 por color) ───────────
         cur.execute("SELECT COUNT(*) FROM balotas")
         count = cur.fetchone()[0]
@@ -351,7 +359,7 @@ def find_order_id_by_wompi_reference(reference: str):
     return row["id"] if row else None
 
 
-def confirm_order(order_id: int, tx_id: str):
+def confirm_order(order_id: int, tx_id: str, payment_method: str = "WOMPI", cash_note: str = ""):
     """Marca la orden como PAID y envía el correo. Idempotente."""
     order = db_one("SELECT * FROM orders WHERE id=%s AND status IN ('PENDING','EXPIRED')", (order_id,))
     if not order:
@@ -365,10 +373,18 @@ def confirm_order(order_id: int, tx_id: str):
         if not new_codes:
             app.logger.error(f"confirm_order: no codes available to re-assign for order {order_id}")
             # Marcar pagado de todas formas; admin puede resolver manualmente
-            db_exec("UPDATE orders SET status='PAID', wompi_transaction_id=%s WHERE id=%s", (tx_id, order_id))
+            db_exec(
+                "UPDATE orders SET status='PAID', wompi_transaction_id=%s, payment_method=%s, "
+                "cash_note=%s, cash_confirmed_at=CASE WHEN %s='CASH' THEN NOW() ELSE NULL END WHERE id=%s",
+                (tx_id, payment_method, cash_note, payment_method, order_id),
+            )
             return
 
-    db_exec("UPDATE orders SET status='PAID', wompi_transaction_id=%s WHERE id=%s", (tx_id, order_id))
+    db_exec(
+        "UPDATE orders SET status='PAID', wompi_transaction_id=%s, payment_method=%s, "
+        "cash_note=%s, cash_confirmed_at=CASE WHEN %s='CASH' THEN NOW() ELSE NULL END WHERE id=%s",
+        (tx_id, payment_method, cash_note, payment_method, order_id),
+    )
     db_exec("UPDATE balotas SET status='SOLD', sold_at=NOW() WHERE order_id=%s AND status='RESERVED'", (order_id,))
     buyer = db_one("SELECT * FROM buyers WHERE id=%s", (order["buyer_id"],))
     codes = [dict(r) for r in db_all(
@@ -954,6 +970,40 @@ def admin_login():
 def admin_logout():
     session.pop("is_admin", None)
     return redirect("/admin/login")
+
+
+@app.route("/admin/ordenes/<int:order_id>/confirmar-efectivo", methods=["POST"])
+@admin_required
+def admin_confirmar_efectivo(order_id):
+    """Reconcilia un pago recibido en efectivo fuera de Wompi. A diferencia del
+    antiguo botón genérico de 'Confirmar' (eliminado a propósito por ser tentador
+    sin evidencia real), esta ruta exige un monto y una nota como evidencia, y deja
+    registrado en la orden (payment_method='CASH', cash_note, cash_confirmed_at)
+    quién decidió confirmarlo y por qué."""
+    order = db_one("SELECT * FROM orders WHERE id=%s", (order_id,))
+    if not order:
+        abort(404)
+    if order["status"] not in ("PENDING", "EXPIRED"):
+        return f"La orden {order_id} ya está en estado {order['status']}, no se puede reconciliar.", 400
+
+    note = (request.form.get("note") or "").strip()
+    amount_raw = (request.form.get("amount") or "").strip()
+    if not note:
+        return "Falta la nota (evidencia del pago en efectivo).", 400
+    try:
+        amount = int(re.sub(r"[^\d]", "", amount_raw))
+    except (TypeError, ValueError):
+        amount = 0
+    if amount != order["total_amount"]:
+        return (
+            f"El monto ingresado (${amount:,}) no coincide con el total de la orden "
+            f"(${order['total_amount']:,}). Verifica antes de confirmar.",
+            400,
+        )
+
+    tx_id = f"CASH-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}"
+    confirm_order(order_id, tx_id, payment_method="CASH", cash_note=note)
+    return redirect("/admin#ordenes")
 
 
 @app.route("/admin")

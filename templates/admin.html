@@ -207,6 +207,8 @@
             <td>
               {% if o.status == 'PAID' %}
               <a href="/pase/{{ o.access_token }}.png" class="link" style="font-size:0.75rem" target="_blank">Ver pase</a>
+              {% elif o.status in ('PENDING', 'EXPIRED') %}
+              <button type="button" class="link" style="font-size:0.75rem;background:none;border:none;cursor:pointer;padding:0" onclick="confirmarEfectivo({{ o.id }}, {{ o.total_amount }})">💵 Marcar pagado (efectivo)</button>
               {% else %}
               <span style="color:#546E7A;font-size:0.75rem">—</span>
               {% endif %}
@@ -300,6 +302,24 @@ function filterBuyers() {
 
 function closeModal() {
   document.getElementById('modal').classList.remove('open');
+}
+
+async function confirmarEfectivo(orderId, totalAmount) {
+  const amountStr = prompt(`Monto exacto recibido en efectivo para la orden GOLAZO-${orderId} (debe ser $${totalAmount.toLocaleString('es-CO')}):`, totalAmount);
+  if (amountStr === null) return;
+  const note = prompt('Nota / evidencia (ej. "Recibido en persona el 04/09, confirmado por Alexander"):', '');
+  if (note === null) return;
+  if (!note.trim()) { alert('Necesitas escribir una nota como evidencia.'); return; }
+  if (!confirm(`¿Confirmas que ya recibiste $${amountStr} en efectivo por la orden GOLAZO-${orderId}? Esta acción asigna los números y envía el pase.`)) return;
+
+  const body = new URLSearchParams({ amount: amountStr, note: note });
+  const resp = await fetch(`/admin/ordenes/${orderId}/confirmar-efectivo`, { method: 'POST', body });
+  if (resp.ok || resp.redirected) {
+    location.reload();
+  } else {
+    const text = await resp.text();
+    alert('No se pudo confirmar: ' + text);
+  }
 }
 </script>
 </body>
