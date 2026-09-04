@@ -1219,11 +1219,13 @@ def admin_debug_wompi_search():
     link_id = request.args.get("link_id", "")
     known_tx = request.args.get("tx_id", "")
     out = {}
+    from_date = request.args.get("from_date", "2026-08-01T00:00:00.000Z")
+    until_date = request.args.get("until_date", "2026-09-05T00:00:00.000Z")
+    common = f"from_date={from_date}&until_date={until_date}&page=1&page_size=200"
     attempts = [
-        ("by_reference_prefix", f"{WOMPI_BASE}/transactions?reference={link_id}"),
-        ("by_payment_link_id_param", f"{WOMPI_BASE}/transactions?payment_link_id={link_id}"),
-        ("by_filter_payment_link_id", f"{WOMPI_BASE}/transactions?filter[payment_link_id]={link_id}"),
-        ("plain_list", f"{WOMPI_BASE}/transactions"),
+        ("by_filter_payment_link_id", f"{WOMPI_BASE}/transactions?{common}&filter[payment_link_id]={link_id}"),
+        ("by_payment_link_id_param", f"{WOMPI_BASE}/transactions?{common}&payment_link_id={link_id}"),
+        ("plain_list_page1", f"{WOMPI_BASE}/transactions?{common}"),
     ]
     for name, url in attempts:
         try:
