@@ -77,16 +77,16 @@ SETTINGS_DEFAULTS = {
 # Días de sorteo reales verificados: Tolima lunes, Cruz Roja/Huila martes,
 # Manizales/Meta miércoles, Bogotá/Quindío jueves, Medellín viernes, Boyacá/Cauca sábado.
 COLORS = [
-    {"id": "blanco",   "name": "Blanco",       "hex": "#FFFFFF", "text": "#000000", "lottery": "Lotería de la Cruz Roja", "draw_date": "8 de septiembre de 2026 (martes)",   "prize": "1 par de guayos Nike"},
-    {"id": "verde",    "name": "Verde Lima",    "hex": "#AEEA00", "text": "#000000", "lottery": "Lotería del Huila",       "draw_date": "8 de septiembre de 2026 (martes)",   "prize": "1 par de guayos Nike"},
-    {"id": "amarillo", "name": "Amarillo",      "hex": "#FFD600", "text": "#000000", "lottery": "Lotería de Manizales",    "draw_date": "9 de septiembre de 2026 (miércoles)", "prize": "1 par de guayos Adidas"},
-    {"id": "marino",   "name": "Azul Marino",   "hex": "#1A237E", "text": "#FFFFFF", "lottery": "Lotería del Meta",        "draw_date": "9 de septiembre de 2026 (miércoles)", "prize": "1 par de guayos Adidas"},
-    {"id": "rojo",     "name": "Rojo",          "hex": "#DD2C00", "text": "#FFFFFF", "lottery": "Lotería de Bogotá",       "draw_date": "10 de septiembre de 2026 (jueves)",  "prize": "1 balón profesional Golty"},
-    {"id": "teal",     "name": "Verde Azulado", "hex": "#004D40", "text": "#FFFFFF", "lottery": "Lotería del Quindío",     "draw_date": "10 de septiembre de 2026 (jueves)",  "prize": "1 balón profesional Golty"},
-    {"id": "rosa",     "name": "Rosa",          "hex": "#E91E63", "text": "#FFFFFF", "lottery": "Lotería del Tolima",      "draw_date": "7 de septiembre de 2026 (lunes)",    "prize": "1 balón profesional Golty"},
-    {"id": "naranja",  "name": "Naranja",       "hex": "#E65100", "text": "#FFFFFF", "lottery": "Lotería de Medellín",     "draw_date": "11 de septiembre de 2026 (viernes)", "prize": "🏆 PlayStation — premio mayor"},
-    {"id": "celeste",  "name": "Azul Claro",    "hex": "#81D4FA", "text": "#000000", "lottery": "Lotería de Boyacá",       "draw_date": "5 de septiembre de 2026 (sábado)",   "prize": "1 balón profesional Golty"},
-    {"id": "negro",    "name": "Negro",         "hex": "#212121", "text": "#FFFFFF", "lottery": "Lotería del Cauca",       "draw_date": "5 de septiembre de 2026 (sábado)",   "prize": "1 balón profesional Golty"},
+    {"id": "blanco",   "name": "Blanco",       "hex": "#FFFFFF", "text": "#000000", "lottery": "Lotería de la Cruz Roja", "draw_date": "22 de septiembre de 2026 (martes)",   "prize": "1 par de guayos Nike"},
+    {"id": "verde",    "name": "Verde Lima",    "hex": "#AEEA00", "text": "#000000", "lottery": "Lotería del Huila",       "draw_date": "22 de septiembre de 2026 (martes)",   "prize": "1 par de guayos Nike"},
+    {"id": "amarillo", "name": "Amarillo",      "hex": "#FFD600", "text": "#000000", "lottery": "Lotería de Manizales",    "draw_date": "23 de septiembre de 2026 (miércoles)", "prize": "1 par de guayos Adidas"},
+    {"id": "marino",   "name": "Azul Marino",   "hex": "#1A237E", "text": "#FFFFFF", "lottery": "Lotería del Meta",        "draw_date": "23 de septiembre de 2026 (miércoles)", "prize": "1 par de guayos Adidas"},
+    {"id": "rojo",     "name": "Rojo",          "hex": "#DD2C00", "text": "#FFFFFF", "lottery": "Lotería de Bogotá",       "draw_date": "24 de septiembre de 2026 (jueves)",  "prize": "1 balón profesional Golty"},
+    {"id": "teal",     "name": "Verde Azulado", "hex": "#004D40", "text": "#FFFFFF", "lottery": "Lotería del Quindío",     "draw_date": "24 de septiembre de 2026 (jueves)",  "prize": "1 balón profesional Golty"},
+    {"id": "rosa",     "name": "Rosa",          "hex": "#E91E63", "text": "#FFFFFF", "lottery": "Lotería del Tolima",      "draw_date": "21 de septiembre de 2026 (lunes)",    "prize": "1 balón profesional Golty"},
+    {"id": "naranja",  "name": "Naranja",       "hex": "#E65100", "text": "#FFFFFF", "lottery": "Lotería de Medellín",     "draw_date": "25 de septiembre de 2026 (viernes)", "prize": "🏆 PlayStation — premio mayor"},
+    {"id": "celeste",  "name": "Azul Claro",    "hex": "#81D4FA", "text": "#000000", "lottery": "Lotería de Boyacá",       "draw_date": "26 de septiembre de 2026 (sábado)",   "prize": "1 balón profesional Golty"},
+    {"id": "negro",    "name": "Negro",         "hex": "#212121", "text": "#FFFFFF", "lottery": "Lotería del Cauca",       "draw_date": "26 de septiembre de 2026 (sábado)",   "prize": "1 balón profesional Golty"},
 ]
 COLOR_MAP = {c["id"]: c for c in COLORS}
 
