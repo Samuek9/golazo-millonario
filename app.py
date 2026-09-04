@@ -1211,6 +1211,35 @@ def admin_audit_wompi():
     return jsonify(results)
 
 
+@app.route("/admin/debug-wompi-search")
+@admin_required
+def admin_debug_wompi_search():
+    """Prueba variantes del endpoint de transacciones de Wompi para encontrar
+    cuál filtro (si alguno) permite ubicar transacciones por payment_link_id."""
+    link_id = request.args.get("link_id", "")
+    known_tx = request.args.get("tx_id", "")
+    out = {}
+    attempts = [
+        ("by_reference_prefix", f"{WOMPI_BASE}/transactions?reference={link_id}"),
+        ("by_payment_link_id_param", f"{WOMPI_BASE}/transactions?payment_link_id={link_id}"),
+        ("by_filter_payment_link_id", f"{WOMPI_BASE}/transactions?filter[payment_link_id]={link_id}"),
+        ("plain_list", f"{WOMPI_BASE}/transactions"),
+    ]
+    for name, url in attempts:
+        try:
+            resp = requests.get(url, headers={"Authorization": f"Bearer {WOMPI_PRIVATE_KEY}"}, timeout=10)
+            out[name] = {"status": resp.status_code, "body": resp.text[:1500]}
+        except Exception as e:
+            out[name] = {"error": str(e)}
+    if known_tx:
+        try:
+            resp = requests.get(f"{WOMPI_BASE}/transactions/{known_tx}", headers={"Authorization": f"Bearer {WOMPI_PRIVATE_KEY}"}, timeout=10)
+            out["known_tx_detail"] = {"status": resp.status_code, "body": resp.text[:2000]}
+        except Exception as e:
+            out["known_tx_detail"] = {"error": str(e)}
+    return jsonify(out)
+
+
 @app.route("/admin/stats")
 @admin_required
 def admin_stats():
