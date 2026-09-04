@@ -1161,18 +1161,27 @@ def admin_audit_wompi():
     payment_link_id) para detectar pagos reales que el webhook/redirect no
     haya confirmado — mismo tipo de brecha que causó el bug crítico de
     referencias no preservadas."""
-    orders = db_all("""
-        SELECT o.id, o.status, o.total_amount, o.wompi_payment_link_id, o.wompi_payment_link_url,
-               o.created_at, b.full_name, b.email
-        FROM orders o JOIN buyers b ON b.id = o.buyer_id
-        WHERE o.status IN ('PENDING','EXPIRED')
-        ORDER BY o.id DESC
-    """)
+    if request.args.get("all"):
+        orders = db_all("""
+            SELECT o.id, o.status, o.total_amount, o.wompi_payment_link_id, o.wompi_payment_link_url,
+                   o.wompi_transaction_id, o.created_at, b.full_name, b.email
+            FROM orders o JOIN buyers b ON b.id = o.buyer_id
+            ORDER BY o.id DESC
+        """)
+    else:
+        orders = db_all("""
+            SELECT o.id, o.status, o.total_amount, o.wompi_payment_link_id, o.wompi_payment_link_url,
+                   o.wompi_transaction_id, o.created_at, b.full_name, b.email
+            FROM orders o JOIN buyers b ON b.id = o.buyer_id
+            WHERE o.status IN ('PENDING','EXPIRED')
+            ORDER BY o.id DESC
+        """)
     results = []
     for o in orders:
         entry = {
             "order_id": o["id"],
             "status_db": o["status"],
+            "wompi_transaction_id_db": o["wompi_transaction_id"],
             "full_name": o["full_name"],
             "email": o["email"],
             "total_amount": o["total_amount"],
