@@ -1154,6 +1154,54 @@ def debug_env():
     })
 
 
+@app.route("/admin/audit-wompi")
+@admin_required
+def admin_audit_wompi():
+    """Contrasta cada orden PENDING/EXPIRED contra la API de Wompi (por su
+    payment_link_id) para detectar pagos reales que el webhook/redirect no
+    haya confirmado — mismo tipo de brecha que causó el bug crítico de
+    referencias no preservadas."""
+    orders = db_all("""
+        SELECT o.id, o.status, o.total_amount, o.wompi_payment_link_id, o.wompi_payment_link_url,
+               o.created_at, b.full_name, b.email
+        FROM orders o JOIN buyers b ON b.id = o.buyer_id
+        WHERE o.status IN ('PENDING','EXPIRED')
+        ORDER BY o.id DESC
+    """)
+    results = []
+    for o in orders:
+        entry = {
+            "order_id": o["id"],
+            "status_db": o["status"],
+            "full_name": o["full_name"],
+            "email": o["email"],
+            "total_amount": o["total_amount"],
+            "created_at": str(o["created_at"]),
+            "payment_link_id": o["wompi_payment_link_id"],
+        }
+        link_id = o["wompi_payment_link_id"]
+        if not link_id:
+            entry["wompi_check"] = "sin payment_link_id guardado"
+            results.append(entry)
+            continue
+        try:
+            resp = requests.get(
+                f"{WOMPI_BASE}/payment_links/{link_id}",
+                headers={"Authorization": f"Bearer {WOMPI_PRIVATE_KEY}"},
+                timeout=10,
+            )
+            if resp.ok:
+                data = resp.json().get("data", {})
+                entry["wompi_raw"] = data
+            else:
+                entry["wompi_check"] = f"HTTP {resp.status_code}: {resp.text[:200]}"
+        except Exception as e:
+            entry["wompi_check"] = f"error: {e}"
+        results.append(entry)
+
+    return jsonify(results)
+
+
 @app.route("/admin/stats")
 @admin_required
 def admin_stats():
