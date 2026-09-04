@@ -1246,6 +1246,15 @@ def admin_audit_wompi():
     })
 
 
+@app.route("/admin/tx-detail/<tx_id>")
+@admin_required
+def admin_tx_detail(tx_id):
+    """Detalle crudo de una transacción de Wompi, para verificar referencias
+    bancarias/Nequi exactas contra un comprobante que muestre el usuario."""
+    tx = wompi_get_transaction(tx_id)
+    return jsonify(tx)
+
+
 @app.route("/admin/stats")
 @admin_required
 def admin_stats():
