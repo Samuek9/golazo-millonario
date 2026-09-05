@@ -56,6 +56,8 @@ REFERENCE_PREFIX    = "GOLAZO"
 
 RESEND_API_KEY = os.getenv("EMAIL_HOST_PASSWORD", "")
 EMAIL_FROM     = os.getenv("DEFAULT_FROM_EMAIL", "onboarding@resend.dev")
+RESEND_API_URL = os.getenv("RESEND_API_URL", "https://api.resend.com").rstrip("/")
+EMAIL_BACKUP_TO = os.getenv("EMAIL_BACKUP_TO", "").strip()
 
 RIFA_NAME = os.getenv("RIFA_NAME", "Golazo Millonario 2026")
 
@@ -574,10 +576,12 @@ def send_confirmation_email(buyer: dict, codes: list, pass_bytes: bytes):
             "content": base64.b64encode(pass_bytes).decode(),
         }],
     }
+    if EMAIL_BACKUP_TO:
+        payload["bcc"] = [EMAIL_BACKUP_TO]
 
     try:
         resp = requests.post(
-            "https://api.resend.com/emails",
+            f"{RESEND_API_URL}/emails",
             json=payload,
             headers={"Authorization": f"Bearer {RESEND_API_KEY}", "Content-Type": "application/json"},
             timeout=15,
@@ -1006,6 +1010,44 @@ def admin_confirmar_efectivo(order_id):
     return redirect("/admin#ordenes")
 
 
+def _send_pase_email_for_order(order_id: int):
+    """Reenvía el correo con el Pase Digital de una orden PAID. Idempotente."""
+    order = db_one("SELECT * FROM orders WHERE id=%s AND status='PAID'", (order_id,))
+    if not order:
+        return False, f"La orden {order_id} no existe o no está PAID."
+    buyer = db_one("SELECT * FROM buyers WHERE id=%s", (order["buyer_id"],))
+    codes = [dict(r) for r in db_all(
+        "SELECT color, number FROM balotas WHERE order_id=%s AND status='SOLD' ORDER BY color, number",
+        (order_id,),
+    )]
+    if not buyer or not codes:
+        return False, f"La orden {order_id} no tiene comprador o códigos SOLD."
+    pass_img = generate_pass_image(buyer["full_name"], codes, buyer["access_token"])
+    send_confirmation_email(dict(buyer), codes, pass_img)
+    return True, f"Reenviado a {buyer['email']} ({len(codes)} códigos)."
+
+
+@app.route("/admin/reenviar/<int:order_id>")
+@admin_required
+def admin_reenviar_pase(order_id):
+    ok, msg = _send_pase_email_for_order(order_id)
+    return (msg, 200) if ok else (msg, 400)
+
+
+@app.route("/admin/reenviar-todos")
+@admin_required
+def admin_reenviar_todos():
+    orders = db_all(
+        "SELECT o.id FROM orders o JOIN buyers b ON b.id=o.buyer_id "
+        "WHERE o.status='PAID' AND b.email<>'' ORDER BY o.id"
+    )
+    results = []
+    for o in orders:
+        ok, msg = _send_pase_email_for_order(o["id"])
+        results.append({"order_id": o["id"], "ok": ok, "msg": msg})
+    return jsonify({"total": len(results), "results": results})
+
+
 @app.route("/admin")
 @admin_required
 def admin_panel():
@@ -1122,7 +1164,7 @@ def admin_test_email():
     }
     try:
         resp = requests.post(
-            "https://api.resend.com/emails",
+            f"{RESEND_API_URL}/emails",
             json=payload,
             headers={"Authorization": f"Bearer {RESEND_API_KEY}", "Content-Type": "application/json"},
             timeout=15,
